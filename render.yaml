@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: booking-platform
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      # Set DATABASE_URL in the Render dashboard or attach a managed PostgreSQL and copy the URL
+      - key: PGSSLMODE
+        value: require
