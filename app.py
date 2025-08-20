@@ -32,6 +32,9 @@ def ensure_table():
     cur.close()
     conn.close()
 
+# Ensure table exists on startup (works on Render + local)
+ensure_table()
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -69,6 +72,6 @@ def list_bookings():
     return render_template("bookings.html", rows=rows)
 
 if __name__ == "__main__":
-    # Local run: create table if missing
-    ensure_table()
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "10000")))
+    # Local run
+    port = int(os.environ.get("PORT", 5000))  # Render sets PORT automatically
+    app.run(host="0.0.0.0", port=port)
