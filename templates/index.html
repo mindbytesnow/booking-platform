@@ -3,37 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking Form</title>
+  <title>Book Your Appointment</title>
   <style>
+    /* Reset & basic */
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      min-height: 100vh;
     }
     .container {
       background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      max-width: 450px;
       width: 100%;
-      max-width: 400px;
-      text-align: center;
     }
     h1 {
-      margin-bottom: 24px;
+      text-align: center;
+      margin-bottom: 30px;
       color: #333;
     }
-    input, button {
+    form input, form button {
       width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 16px;
+      border-radius: 8px;
       border: 1px solid #ccc;
       font-size: 16px;
+      transition: all 0.2s;
+    }
+    form input:focus {
+      border-color: #4CAF50;
+      outline: none;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
     }
     button {
       background: #4CAF50;
@@ -45,33 +53,43 @@
     button:hover {
       background: #45a049;
     }
-    .messages {
-      margin-bottom: 16px;
-      color: red;
+    .messages p {
+      margin: 0 0 8px 0;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .messages .error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .messages .success {
+      background: #d4edda;
+      color: #155724;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Make a Booking</h1>
+    <h1>Book Your Appointment</h1>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="messages">
+    <div class="messages">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
           {% for message in messages %}
-            <p>{{ message }}</p>
+            {% if "saved" in message %}
+              <p class="success">{{ message }}</p>
+            {% else %}
+              <p class="error">{{ message }}</p>
+            {% endif %}
           {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+        {% endif %}
+      {% endwith %}
+    </div>
 
-    <form method="POST">
-      <input type="text" name="name" placeholder="Your Name" required>
-      <input type="email" name="email" placeholder="Your Email" required>
-      <input type="date" name="date" required>
-      <input type="time" name="time" required>
-      <button type="submit">Book Now</button>
-    </form>
-  </div>
-</body>
-</html>
+    <form method="POST" onsubmit="return validateForm()">
+      <input type="text" name="name" placeholder="Full Name" id="name">
+      <input type="email" name="email" placeholder="Email Address" id="email">
+      <input type="date" name="date" id="date">
+      <input type="time" name="time" id="time">
+      <butto
