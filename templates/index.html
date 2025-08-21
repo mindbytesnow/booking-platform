@@ -2,185 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Booking Dashboard</title>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Now</title>
 <style>
-body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
-header { background:#4CAF50; color:white; padding:20px; text-align:center; }
-h1 { margin:0; font-size:28px; }
-
-.dashboard-cards { display:flex; flex-wrap:wrap; justify-content:center; margin:20px; gap:20px; }
-.card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); min-width:200px; text-align:center; }
-.card h2 { margin:0; font-size:24px; color:#333; }
-.card p { margin:5px 0 0 0; font-size:14px; color:#777; }
-
-/* Table */
-.container { margin:20px; overflow-x:auto; }
-table { width:100%; border-collapse: collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-th, td { border-bottom:1px solid #eee; padding:12px 8px; text-align:left; }
-th { background:#f4f4f4; font-weight:600; }
-tr:hover { background:#f1f8ff; }
-
-/* Search */
-#searchInput { margin-bottom:10px; padding:10px; border-radius:8px; border:1px solid #ccc; width:100%; max-width:300px; }
-
-/* Floating Button */
-#floatingBtn { position: fixed; bottom: 25px; right: 25px; background-color: #4CAF50; color:white; border:none; border-radius:50%; padding:18px; font-size:18px; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:1000; }
-#floatingBtn:hover { background-color:#45a049; }
-
-/* Modal */
-.modal { display:none; position:fixed; z-index:999; padding-top:80px; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.5);}
-.modal-content { background:white; margin:auto; padding:30px; border-radius:12px; width:90%; max-width:400px; box-shadow:0 8px 20px rgba(0,0,0,0.25); position:relative;}
-.modal-content h2 { margin-top:0; }
-.modal-content input, .modal-content button { width:100%; padding:12px; margin-bottom:14px; border-radius:8px; border:1px solid #ccc; font-size:16px; }
-.modal-content button { background-color:#4CAF50; color:white; border:none; font-weight:bold; }
-.modal-content button:hover { background-color:#45a049; }
-.close { position:absolute; top:12px; right:16px; font-size:28px; font-weight:bold; cursor:pointer; }
-
-/* Notifications */
-#notificationContainer { position:fixed; top:20px; right:20px; z-index:2000; }
-.notification { background-color:#4CAF50; color:white; padding:12px 20px; margin-bottom:12px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); opacity:0; transform:translateX(100%); transition:transform 0.4s, opacity 0.4s; min-width:220px; }
-.notification.show { opacity:1; transform:translateX(0); }
+#bookBtn {
+  position: fixed; bottom: 20px; right: 20px;
+  background: #007bff; color: white; border: none; padding: 12px 20px;
+  border-radius: 8px; cursor: pointer; z-index: 1000;
+}
+#bookingModal {
+  display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+}
+#bookingForm {
+  background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;
+}
 </style>
 </head>
 <body>
+<button id="bookBtn">Book Now</button>
 
-<header>
-  <h1>Booking Dashboard</h1>
-</header>
-
-<div class="dashboard-cards">
-  <div class="card">
-    <h2 id="totalBookings">0</h2>
-    <p>Total Bookings</p>
-  </div>
-  <div class="card">
-    <h2 id="todayBookings">0</h2>
-    <p>Today's Bookings</p>
-  </div>
-  <div class="card">
-    <h2 id="upcomingBookings">0</h2>
-    <p>Upcoming Bookings</p>
-  </div>
-</div>
-
-<div class="container">
-  <input type="text" id="searchInput" placeholder="Search bookings...">
-  <table id="bookingsTable">
-    <thead>
-      <tr><th>ID</th><th>Name</th><th>Email</th><th>Date</th><th>Time</th><th>Created At</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<!-- Notifications -->
-<div id="notificationContainer"></div>
-
-<!-- Floating Button + Modal -->
-<button id="floatingBtn">Book Now</button>
-<div id="bookingModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h2>Make a Booking</h2>
-    <form id="modalForm">
-      <input type="text" name="name" placeholder="Full Name" required>
-      <input type="email" name="email" placeholder="Email Address" required>
-      <input type="date" name="date" required>
-      <input type="time" name="time" required>
-      <button type="submit">Submit Booking</button>
+<div id="bookingModal">
+  <div id="bookingForm">
+    <h3>Make a Booking</h3>
+    <form method="POST">
+      <input type="text" name="name" placeholder="Your Name" required><br><br>
+      <input type="email" name="email" placeholder="Email" required><br><br>
+      <input type="text" name="service" placeholder="Service"><br><br>
+      <input type="date" name="date" required><br><br>
+      <input type="time" name="time" required><br><br>
+      <button type="submit">Submit</button>
+      <button type="button" onclick="closeModal()">Cancel</button>
     </form>
   </div>
 </div>
 
 <script>
-// DOM references
-const tableBody = document.querySelector("#bookingsTable tbody");
-const totalBookingsDisplay = document.getElementById("totalBookings");
-const todayBookingsDisplay = document.getElementById("todayBookings");
-const upcomingBookingsDisplay = document.getElementById("upcomingBookings");
-const searchInput = document.getElementById("searchInput");
-const notificationContainer = document.getElementById("notificationContainer");
-
-// Modal
+const btn = document.getElementById("bookBtn");
 const modal = document.getElementById("bookingModal");
-const btn = document.getElementById("floatingBtn");
-const span = document.getElementsByClassName("close")[0];
-btn.onclick = () => modal.style.display="block";
-span.onclick = () => modal.style.display="none";
-window.onclick = e => { if(e.target===modal) modal.style.display="none"; };
-
-// Fetch bookings
-async function fetchBookings(){
-  const resp = await fetch("/api/bookings");
-  const bookings = await resp.json();
-  tableBody.innerHTML="";
-  bookings.forEach(addBookingRow);
-  updateStats(bookings);
-  filterTable();
-}
-
-// Add table row
-function addBookingRow(row){
-  const tr=document.createElement("tr");
-  tr.innerHTML=`<td>${row.id}</td><td>${row.name}</td><td>${row.email}</td><td>${row.date}</td><td>${row.time}</td><td>${row.created_at}</td>`;
-  tableBody.prepend(tr);
-}
-
-// Filter table
-function filterTable(){
-  const input = searchInput.value.toLowerCase();
-  const trs = tableBody.getElementsByTagName("tr");
-  for(let i=0;i<trs.length;i++){
-    const cells=trs[i].getElementsByTagName("td");
-    let show=false;
-    for(let j=0;j<cells.length;j++){ if(cells[j].innerText.toLowerCase().includes(input)){show=true; break;} }
-    trs[i].style.display=show?"":"none";
-  }
-}
-searchInput.addEventListener("keyup",filterTable);
-
-// Notifications
-function showNotification(message){
-  const div=document.createElement("div");
-  div.className="notification"; div.innerText=message;
-  notificationContainer.appendChild(div);
-  setTimeout(()=>div.classList.add("show"),50);
-  setTimeout(()=>{div.classList.remove("show"); setTimeout(()=>notificationContainer.removeChild(div),400);},4000);
-}
-
-// Stats
-function updateStats(bookings){
-  const now = new Date().toISOString().split('T')[0];
-  const total = bookings.length;
-  const today = bookings.filter(b=>b.date===now).length;
-  const upcoming = bookings.filter(b=>b.date>now).length;
-  totalBookingsDisplay.textContent=total;
-  todayBookingsDisplay.textContent=today;
-  upcomingBookingsDisplay.textContent=upcoming;
-}
-
-// SocketIO
-const socket = io();
-socket.on("new_booking", row=>{
-  addBookingRow(row);
-  fetchBookings(); // refresh stats
-  showNotification(`New Booking: ${row.name} on ${row.date} at ${row.time}`);
-});
-
-// Modal AJAX submission
-const form=document.getElementById("modalForm");
-form.onsubmit=async e=>{
-  e.preventDefault();
-  const formData = new FormData(form);
-  const data = Object.fromEntries(formData.entries());
-  const resp = await fetch("/", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
-  if(resp.ok){ alert("Booking submitted!"); form.reset(); modal.style.display="none"; fetchBookings(); } 
-  else { alert("Failed to submit booking."); }
-};
-
-// Initial load
-fetchBookings();
+btn.onclick = () => modal.style.display = "flex";
+function closeModal() { modal.style.display = "none"; }
 </script>
 </body>
 </html>
